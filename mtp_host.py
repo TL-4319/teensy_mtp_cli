@@ -1,6 +1,7 @@
 import serial
 import subprocess
 import os
+import time
 
 # Clear the terminal to make it nicer
 subprocess.run("clear",shell = True)
@@ -12,11 +13,11 @@ cur_dir = os.getcwd()
 teensy_mtp_hex_path = cur_dir + '/teensy_mtp/'
 os.chdir(teensy_mtp_hex_path)
 teensy_upload_mtp_str = "teensy_loader_cli --mcu=TEENSY41 -w -s " + teensy_mtp_hex_file_name
-upload_stat = subprocess.run(teensy_upload_mtp_str,shell = True)
-while(upload_stat.returncode == 1):
-    print ("Upload failed. Retrying")
-    upload_stat = subprocess.run(teensy_upload_mtp_str,shell = True)
-print ("MTP Code uploaded")
+#upload_stat = subprocess.run(teensy_upload_mtp_str,shell = True)
+#while(upload_stat.returncode == 1):
+#    print ("Upload failed. Retrying")
+#    upload_stat = subprocess.run(teensy_upload_mtp_str,shell = True)
+#print ("MTP Code uploaded")
 os.chdir(cur_dir)
 
 # Teensy serial port parameters
@@ -58,7 +59,12 @@ while (1):
         teensy_ser.reset_input_buffer()
     elif (cmd_array[0] == "ls"):
         teensy_ser.write(bytes('1'.encode('utf-8')))
-        while (teensy_ser.in_waiting > 0):
+        time.sleep (0.1)
+        print(teensy_ser.read(teensy_ser.in_waiting).decode())
+    elif (cmd_array[0] == "send"):
+        teensy_ser.write(bytes(cmd_array[1].encode('utf-8')))
+        time.sleep(0.1)
+        while (teensy_ser.in_waiting>0):
             print(teensy_ser.read())
     else:
         print ('Invalid command')

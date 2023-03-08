@@ -45,8 +45,8 @@ void loop() {
     uint8_t inByte = Serial.read();
     if (inByte > 0){
       switch (inByte){
-        case 1:
-        delay(1000);
+        case 49:
+        delay(10);
           list_all();
           break;
         case 2:
