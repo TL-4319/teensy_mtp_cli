@@ -49,8 +49,20 @@ void loop() {
         delay(10);
           list_all();
           break;
-        case 2:
-          Serial.println(inByte);
+        case 50:
+          String file_name = Serial.readString();
+          File myFile = SD.open(file_name.c_str());
+          if (myFile){
+            Serial.print("0");
+            delay(500);
+            while(myFile.available()){
+              Serial.write(myFile.read());
+            }
+            myFile.close();
+          }
+          else{
+            Serial.print("1");
+          }
         default:
           break;
       }

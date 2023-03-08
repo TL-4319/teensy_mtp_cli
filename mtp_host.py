@@ -66,5 +66,24 @@ while (1):
         time.sleep(0.1)
         while (teensy_ser.in_waiting>0):
             print(teensy_ser.read())
+    elif (cmd_array[0] == "cp"):
+        try:
+            output_file = cmd_array[2] + cmd_array[1]
+            teensy_ser.write(bytes('2'.encode('utf-8')))
+            time.sleep(0.1)
+            teensy_ser.write(bytes(cmd_array[1].encode('utf-8')))
+            time.sleep(5)
+            file_search_stat = teensy_ser.read(teensy_ser.in_waiting).decode()
+            if (file_search_stat == "1"):
+                print("File does not exist")
+            elif (file_search_state == "0"):
+                print (output_file)
+        except:
+            print ('Invalid cp command')
+    elif (cmd_array[0] == "reset_buffer"):
+        try:
+            teensy_ser.reset_input_buffer()
+        except:
+            print ("port not opened")
     else:
         print ('Invalid command')
