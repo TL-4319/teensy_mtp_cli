@@ -66,7 +66,6 @@ while (1):
             teensy_baud = 115200 
         try:
             teensy_ser = serial.Serial(teensy_port, teensy_baud, timeout = 5)
-            teensy_ser.se
             teensy_ser.reset_input_buffer()
         except:
             print ("Connection failed. Retry with different port or baudrate")
