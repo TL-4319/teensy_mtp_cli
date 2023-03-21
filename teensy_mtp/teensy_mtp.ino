@@ -29,6 +29,8 @@ const int chipSelect = BUILTIN_SDCARD;
  *  delete all
  */
 
+String file_name;
+
 void setup() {
   Serial.begin(115200);
 //  while (!Serial){
@@ -51,16 +53,17 @@ void loop() {
     // read the incoming byte:
     uint8_t inByte = Serial.read();
     if (inByte > 0){
-      switch (inByte){
         // If received list_all command
-        case 49:
-        delay(10);
+        if (inByte == 49){
+          delay(10);
           list_all();
-          break;
+        }
         //If received cp command
-        case 50:
+        
+        else if (inByte == 50){
           // Parse file name and check if exist. Send ack or error byte accordingly
-          String file_name = Serial.readString();
+          delay(10);
+          file_name = Serial.readString();
           File myFile = SD.open(file_name.c_str());
           if (myFile){
             Serial.print("0");
@@ -78,7 +81,6 @@ void loop() {
                   }
                 }
               }
-              //delay(1);
             }
             myFile.close();
             // Send EOF sequence for host to know when file is finished
@@ -90,10 +92,37 @@ void loop() {
           else{
             Serial.print("1");
           }
-        default:
-          break;
+        }
+          
+        else if (inByte == 51){
+          delay(10);
+          file_name = Serial.readString();
+          if (file_name == "all"){
+            delete_all();
+            
+          }
+          else{
+            SD.remove(file_name.c_str());
+            }
+          
+        }
+
+        else {;}
       }
     }
+  }
+
+
+void delete_all(){
+  File root = SD.open("/");
+  while(true){
+    File cur_file = root.openNextFile();
+    if (!cur_file) {
+        break;
+      }
+    String cur_name = cur_file.name();
+    cur_file.close();
+    SD.remove(cur_name.c_str());
   }
 }
 

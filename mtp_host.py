@@ -25,13 +25,14 @@ teensy_port = "/dev/ttyACM0"
 teensy_baud = 115200
 
 # Help menu
-quit_help_str = "quit - exit application\n\n"
-clear_help_str = "clear - clear terminal\n\n"
-help_help_str =  "help - show options\n\n"
-copy_help_str = "cp file_to_copy /destination/path/on/computer/ - requires all arguments\n\n"
-ls_help_str = "ls - list all files on the SD card\n\n"
+quit_help_str = "quit - \n    exit application\n\n"
+clear_help_str = "clear - \n    clear terminal\n\n"
+help_help_str =  "help - \n    show options\n\n"
+copy_help_str = "cp file_to_copy /destination/path/on/computer/ - \n    copy specific file from SD to specified location on computer(requires all arguments)\n\n"
+ls_help_str = "ls - \n    list all files on the SD card\n\n"
 connect_help_str = "connect PORT BAUDRATE - \n    PORT - serial port after /dev/. Default is /dev/ttyAMC0\n    BAURATE - Default is 115200\n\n"
-help_str = "Teensy MTP host application command list:\n\n" + connect_help_str +ls_help_str + copy_help_str + clear_help_str + quit_help_str + help_help_str
+del_help_str = "rm file_to_delete/all - \n    delete a specific file or delete all content\n\n"
+help_str = "Teensy MTP host application command list:\n\n" + connect_help_str +ls_help_str + copy_help_str + del_help_str +clear_help_str + quit_help_str + help_help_str
 print (help_str)
 
 
@@ -137,6 +138,18 @@ while (1):
         except Exception as e:
             print (e)
             print ('Invalid cp command')
+    elif (cmd_array[0] == "rm"):
+        try:
+            del_promtp = "Are you sure you want to delete " + cmd_array[1] + "? [y/n]   "
+            del_confirm = input(del_promtp)
+            if del_confirm == "y":
+                teensy_ser.write(bytes('3'.encode('utf-8')))
+                time.sleep(0.1)
+                # Send file name
+                teensy_ser.write(bytes(cmd_array[1].encode('utf-8')))
+                time.sleep(0.1)
+        except Exception as e:
+            print (e)
 
     # Manually reset the input buffer from serial port. for Debugging
     elif (cmd_array[0] == "reset_buffer"):
