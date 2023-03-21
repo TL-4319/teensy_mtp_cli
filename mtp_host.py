@@ -28,9 +28,9 @@ teensy_baud = 115200
 quit_help_str = "quit - exit application\n\n"
 clear_help_str = "clear - clear terminal\n\n"
 help_help_str =  "help - show options\n\n"
-copy_help_str = "cp file_to_copy /destination/path/on/computer/ - requires all arguments"
-ls_help_str = "ls - list all files on the SD card"
-connect_help_str = "connect PORT BAUDRATE - \nPORT - serial port after /dev/. Default is /dev/ttyAMC0 \n BAURATE - Default is 115200"
+copy_help_str = "cp file_to_copy /destination/path/on/computer/ - requires all arguments\n\n"
+ls_help_str = "ls - list all files on the SD card\n\n"
+connect_help_str = "connect PORT BAUDRATE - \n    PORT - serial port after /dev/. Default is /dev/ttyAMC0\n    BAURATE - Default is 115200\n\n"
 help_str = "Teensy MTP host application command list:\n\n" + connect_help_str +ls_help_str + copy_help_str + clear_help_str + quit_help_str + help_help_str
 print (help_str)
 
