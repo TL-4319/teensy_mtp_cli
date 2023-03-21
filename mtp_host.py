@@ -28,7 +28,10 @@ teensy_baud = 115200
 quit_help_str = "quit - exit application\n\n"
 clear_help_str = "clear - clear terminal\n\n"
 help_help_str =  "help - show options\n\n"
-help_str = "Teensy MTP host application command list:\n\n" + clear_help_str + quit_help_str + help_help_str
+copy_help_str = "cp file_to_copy /destination/path/on/computer/ - requires all arguments"
+ls_help_str = "ls - list all files on the SD card"
+connect_help_str = "connect PORT BAUDRATE - \nPORT - serial port after /dev/. Default is /dev/ttyAMC0 \n BAURATE - Default is 115200"
+help_str = "Teensy MTP host application command list:\n\n" + connect_help_str +ls_help_str + copy_help_str + clear_help_str + quit_help_str + help_help_str
 print (help_str)
 
 
@@ -65,7 +68,7 @@ while (1):
         except:
             teensy_baud = 115200 
         try:
-            teensy_ser = serial.Serial(teensy_port, teensy_baud, timeout = 5)
+            teensy_ser = serial.Serial(teensy_port, teensy_baud ,timeout = 5)
             teensy_ser.reset_input_buffer()
         except:
             print ("Connection failed. Retry with different port or baudrate")
@@ -93,10 +96,13 @@ while (1):
         try:
             teensy_ser.reset_input_buffer()
             output_file = cmd_array[2] + cmd_array[1]
+            # Send CP command
             teensy_ser.write(bytes('2'.encode('utf-8')))
             time.sleep(0.1)
+            # Send file name
             teensy_ser.write(bytes(cmd_array[1].encode('utf-8')))
             time.sleep(0.1)
+            # Check if file exists
             file_search_stat = teensy_ser.read().decode()
             if (file_search_stat == "1"):
                 print("File does not exist")
@@ -104,9 +110,18 @@ while (1):
                 print ("Copying file")
                 file_copy_completed = False
                 end_file_pos = 0
+                flow_stopped = False
                 with open(output_file, mode='wb') as f:
                     while not file_copy_completed:
+                        # Flow control because pyserial buffer is small
+                        if teensy_ser.in_waiting > 2000 and not flow_stopped:
+                            teensy_ser.write(bytes('8'.encode('utf-8')))
+                            flow_stopped = True
+                        if teensy_ser.in_waiting < 100 and flow_stopped:
+                            teensy_ser.write(bytes('9'.encode('utf-8')))
+                            flow_stopped = False
                         inByte = teensy_ser.read()
+                        # Check for EOF sequence
                         if end_file_pos == 0 and inByte == b'\xaa':
                             end_file_pos = 1
                         elif end_file_pos == 1 and inByte == b'\xbb':

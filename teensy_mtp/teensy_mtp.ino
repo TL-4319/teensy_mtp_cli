@@ -1,7 +1,8 @@
 /*
  * Teensy MTP CLI
  * 
- * Code should be uploaded to the teensy to interface with companion CLI python script
+ * Code should be uploaded to the teensy to interface with companion CLI python script. It can also intereact with any software
+ * with serial terminal
  * 
  */
 #include <SD.h>
@@ -19,8 +20,14 @@
 const int chipSelect = BUILTIN_SDCARD;
 
 // Command list
-// 1 - List all file on SD card
-// 2- Copy file with name
+// 1  - List all file on SD card
+// 2  - Copy file with name
+
+/*
+ * TODO:
+ *  delete specific files
+ *  delete all
+ */
 
 void setup() {
   Serial.begin(115200);
@@ -45,24 +52,41 @@ void loop() {
     uint8_t inByte = Serial.read();
     if (inByte > 0){
       switch (inByte){
+        // If received list_all command
         case 49:
         delay(10);
           list_all();
           break;
+        //If received cp command
         case 50:
+          // Parse file name and check if exist. Send ack or error byte accordingly
           String file_name = Serial.readString();
           File myFile = SD.open(file_name.c_str());
           if (myFile){
             Serial.print("0");
             while(myFile.available()){
+              //Send file content over serial
               Serial.write(myFile.read());
+
+              // Implemented flow control. Only needed because python base host using pyserial has small buffer
+              if (Serial.available()){
+                if (Serial.read() == 56){
+                  while (1){
+                    if (Serial.read() == 57){
+                      break;  
+                    }
+                  }
+                }
+              }
               //delay(1);
             }
             myFile.close();
+            // Send EOF sequence for host to know when file is finished
             Serial.write(0xAA);
             Serial.write(0xBB);
             Serial.write(0xCC);
           }
+          // Error if file does not esixt
           else{
             Serial.print("1");
           }
@@ -73,13 +97,13 @@ void loop() {
   }
 }
 
+// Copy from listfile example from Arduino SD library
 void list_all(){
   File root = SD.open("/");
   printDirectory(root, 0);
   root.close();
 }
 
-// Copy from listfile example from Arduino SD library
 void printDirectory(File dir, int numSpaces) {
    while(true) {
      File entry = dir.openNextFile();
@@ -88,6 +112,9 @@ void printDirectory(File dir, int numSpaces) {
        break;
      }
      printSpaces(numSpaces);
+     if (entry.name()[0] == '.'){
+      continue;
+     }
      Serial.print(entry.name());
      if (entry.isDirectory()) {
        Serial.println("/");
