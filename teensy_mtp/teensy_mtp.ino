@@ -54,11 +54,14 @@ void loop() {
           File myFile = SD.open(file_name.c_str());
           if (myFile){
             Serial.print("0");
-            delay(500);
             while(myFile.available()){
               Serial.write(myFile.read());
+              //delay(1);
             }
             myFile.close();
+            Serial.write(0xAA);
+            Serial.write(0xBB);
+            Serial.write(0xCC);
           }
           else{
             Serial.print("1");

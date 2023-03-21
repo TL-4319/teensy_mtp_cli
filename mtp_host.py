@@ -22,7 +22,7 @@ os.chdir(cur_dir)
 
 # Teensy serial port parameters
 teensy_port = "/dev/ttyACM0"
-teensy_baud = 115200 
+teensy_baud = 115200
 
 # Help menu
 quit_help_str = "quit - exit application\n\n"
@@ -57,7 +57,7 @@ while (1):
     # Begin serial connection with Teensy
     elif (cmd_array[0] == "connect"):
         try:
-            teensy_port = cmd_array[1]
+            teensy_port = "/dev/" + cmd_array[1]
         except:
             teensy_port = "/dev/ttyACM0"
         try:
@@ -66,15 +66,20 @@ while (1):
             teensy_baud = 115200 
         try:
             teensy_ser = serial.Serial(teensy_port, teensy_baud, timeout = 5)
+            teensy_ser.se
             teensy_ser.reset_input_buffer()
         except:
             print ("Connection failed. Retry with different port or baudrate")
 
     # List all file on the SD card
     elif (cmd_array[0] == "ls"):
-        teensy_ser.write(bytes('1'.encode('utf-8')))
-        time.sleep (0.1)
-        print(teensy_ser.read(teensy_ser.in_waiting).decode())
+        try:
+            teensy_ser.reset_input_buffer()
+            teensy_ser.write(bytes('1'.encode('utf-8')))
+            time.sleep (0.1)
+            print(teensy_ser.read(teensy_ser.in_waiting).decode())
+        except:
+            print ("No device connected")
 
     # Send a string to the teensy. for debugging only
     elif (cmd_array[0] == "send"):
@@ -87,24 +92,36 @@ while (1):
     # cp file_to_copy /destination/path/on/computer/
     elif (cmd_array[0] == "cp"):
         try:
+            teensy_ser.reset_input_buffer()
             output_file = cmd_array[2] + cmd_array[1]
             teensy_ser.write(bytes('2'.encode('utf-8')))
             time.sleep(0.1)
             teensy_ser.write(bytes(cmd_array[1].encode('utf-8')))
-            time.sleep(5)
-            file_search_stat = teensy_ser.read(teensy_ser.in_waiting).decode()
+            time.sleep(0.1)
+            file_search_stat = teensy_ser.read().decode()
             if (file_search_stat == "1"):
                 print("File does not exist")
-            elif (file_search_state == "0"):
-                file_copy_completed == 0
-                with open(output_file, mode=w) as f:
-                    while file_copy_completed == 0:
+            elif (file_search_stat == "0"):
+                print ("Copying file")
+                file_copy_completed = False
+                end_file_pos = 0
+                with open(output_file, mode='wb') as f:
+                    while not file_copy_completed:
                         inByte = teensy_ser.read()
-                        if (int(inByte) == '-1'):
-                            break
+                        if end_file_pos == 0 and inByte == b'\xaa':
+                            end_file_pos = 1
+                        elif end_file_pos == 1 and inByte == b'\xbb':
+                            end_file_pos = 2
+                        elif end_file_pos == 2 and inByte == b'\xcc':
+                            file_copy_completed = True
                         else:
-                            f.write(inByte)
-        except:
+                            end_file_pos = 0
+                        f.write(inByte)
+                    f.seek(-3, os.SEEK_END)
+                    f.truncate()
+                    print("Done")
+        except Exception as e:
+            print (e)
             print ('Invalid cp command')
 
     # Manually reset the input buffer from serial port. for Debugging
