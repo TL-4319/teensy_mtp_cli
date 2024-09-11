@@ -22,12 +22,7 @@ const int chipSelect = BUILTIN_SDCARD;
 // Command list
 // 1  - List all file on SD card
 // 2  - Copy file with name
-
-/*
- * TODO:
- *  delete specific files
- *  delete all
- */
+// 3  - Delete specific file if follow by filename, otherwise delete all.
 
 String file_name;
 
