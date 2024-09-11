@@ -21,6 +21,8 @@ The library provide a sample python CLI application to interact with the Teensy 
 * copy files
 * delete files
 
+Enter "help" in command line after running python script to list all available commands.
+
 ## Usage note
 Using the provide ```mtp_host.py``` might be slow. This is because the implemented MTP also support flow control where the host device can command the teensy to pause data transfer if the input buffer of the host device is near full to prevent buffer overflow. This is needed because in the current implementation on Linux, the PC serial inpt buffer is only 4096. Trial and error shows that it is more reliable to stop data transfer when the buffer is around 50% (2000 bytes) full which is somewhat inefficient. This will be a persistent issue unless there is a way for pySerial to increase the input buffer on Linux. Note: I have yet to test this on Windows and maybe the implementation there has a way to change buffer size.
 
